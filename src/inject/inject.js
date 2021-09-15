@@ -18,7 +18,8 @@ let opToFn = {
   "<=": "LTE(__field, __value)",
 };
 
-let numericOps = ["=", "!=", ">", "<", ">=", "<="];
+let numericOps = [">", "<", ">=", "<="];
+let valueOps = ["=", "!="];
 
 let ICON = `
 <div class="css-flxm2o-RawButton e1myaoz20">
@@ -43,74 +44,87 @@ function copyToClipboard(queryStr) {
   }
 }
 
+function getQuery() {
+  let queryType = QUERY_TYPES.AND;
+  // until we figure out a better way of restricting the pages
+
+  let queryParts = document.querySelector(
+    '[data-test="filter-clause"]'
+  ).childNodes;
+
+  // queryParts[0] -> WHERE
+  // queryParts[1] -> filters applied to the query
+  if (queryParts[0].childNodes.length > 1) {
+    queryType = QUERY_TYPES.OR;
+  }
+
+  let filters = Array.from(queryParts[1].childNodes[0].childNodes.values()).map(
+    (item) => item.textContent
+  );
+
+  let filtersObj = Array.from(
+    filters.map((f) => {
+      let parts = f.split(" ");
+      let obj = {
+        field: parts[0],
+        operator: parts[1],
+        value: parts[2],
+      };
+
+      return obj;
+    })
+  );
+
+  let translatedFilters = Array.from(
+    filtersObj.map((f) => {
+      let s = opToFn[f.operator];
+      s = s.replace(`__field`, `\$${f.field}`);
+
+      // value is optional
+      if (f.value != undefined) {
+        let quotes = true;
+        // TODO: booleans?
+        if (numericOps.includes(f.operator)) {
+          quotes = false;
+        }
+
+        if (valueOps.includes(f.operator)) {
+          quotes = isNaN(f.value);
+        }
+
+        if (quotes) {
+          s = s.replace(`__value`, `"${f.value}"`);
+        } else {
+          s = s.replace(`__value`, `${f.value}`);
+        }
+      }
+
+      return s;
+    })
+  );
+
+  let queryStr = "";
+  let expr = translatedFilters.join(",");
+  if (queryType == QUERY_TYPES.AND) {
+    // combine with `AND()` all the translatedFilters
+    queryStr = `AND(${expr})`;
+  } else {
+    queryStr = `OR(${expr})`;
+  }
+
+  console.log(
+    `We have a query of type ${queryType} with the filters`,
+    filtersObj
+  );
+
+  console.log(`The final query is: ${queryStr}`);
+  return queryStr;
+}
+
 chrome.extension.sendMessage({}, function (response) {
   var readyStateCheckInterval = setInterval(function () {
     if (document.readyState === "complete") {
       clearInterval(readyStateCheckInterval);
-
-      let queryType = QUERY_TYPES.AND;
-      // until we figure out a better way of restricting the pages
-
-      let queryParts = document.querySelector(
-        '[data-test="filter-clause"]'
-      ).childNodes;
-
-      // queryParts[0] -> WHERE
-      // queryParts[1] -> filters applied to the query
-      if (queryParts[0].childNodes.length > 1) {
-        queryType = QUERY_TYPES.OR;
-      }
-
-      let filters = Array.from(
-        queryParts[1].childNodes[0].childNodes.values()
-      ).map((item) => item.textContent);
-
-      let filtersObj = Array.from(
-        filters.map((f) => {
-          let parts = f.split(" ");
-          let obj = {
-            field: parts[0],
-            operator: parts[1],
-            value: parts[2],
-          };
-
-          return obj;
-        })
-      );
-
-      let translatedFilters = Array.from(
-        filtersObj.map((f) => {
-          let s = opToFn[f.operator];
-          s = s.replace(`__field`, `\$${f.field}`);
-          // value is optional
-          if (f.value != undefined) {
-            // TODO: if it is a numeric operator then don't wrap with quotes ""
-            if (numericOps.includes(f.operator)) {
-              s = s.replace(`__value`, `${f.value}`);
-            } else {
-              s = s.replace(`__value`, `"${f.value}"`);
-            }
-          }
-
-          return s;
-        })
-      );
-
-      let queryStr = "";
-      let expr = translatedFilters.join(",");
-      if (queryType == QUERY_TYPES.AND) {
-        // combine with `AND()` all the translatedFilters
-        queryStr = `AND(${expr})`;
-      } else {
-        queryStr = `OR(${expr})`;
-      }
-
-      console.log(
-        `We have a query of type ${queryType} with the filters`,
-        filtersObj
-      );
-
-      console.log(`The final query is: ${queryStr}`);
 
       // find location
       let container = document.querySelector(
@@ -123,12 +137,12 @@ chrome.extension.sendMessage({}, function (response) {
       const svg = parser.parseFromString(ICON, "image/svg+xml");
 
       svg.querySelector("div").addEventListener("click", function (event) {
+        let queryStr = getQuery();
         copyToClipboard(queryStr);
       });
 
-      svg.querySelector("div").className = "css-flxm2o-RawButton e1myaoz20";
-
-      container.appendChild(svg.querySelector("div"));
+      container.appendChild(svg.querySelector("div")).className =
+        "css-flxm2o-RawButton e1myaoz20";
       // insert button
 
       // make it clickable
