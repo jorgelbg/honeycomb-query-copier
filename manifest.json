@@ -16,7 +16,8 @@
     "default_popup": "src/page_action/page_action.html"
   },
   "permissions": [
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications"
   ],
   "content_scripts": [
     {
@@ -27,5 +28,9 @@
         "src/inject/inject.js"
       ]
     }
-  ]
+  ],
+  "background" : {
+    "scripts" : ["src/inject/background.js"],
+    "persistent": false
+  }
 }

@@ -21,13 +21,11 @@ let opToFn = {
 let numericOps = [">", "<", ">=", "<="];
 let valueOps = ["=", "!="];
 
-let ICON = `
-<div class="css-flxm2o-RawButton e1myaoz20">
+const ICON = `
 	<svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem; cursor: pointer;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-	<title id="unique-id">Copy WHERE clause as a Derived Column syntax</title>
+	<title id="unique-id">Copy WHERE clause as Derived Column syntax</title>
 	<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-	</svg>
-</div>`;
+	</svg>`;
 
 function copyToClipboard(queryStr) {
   const el = document.createElement("textarea");
@@ -131,21 +129,28 @@ chrome.extension.sendMessage({}, function (response) {
         '[data-test="query-builder"]'
       ).nextElementSibling;
 
-      console.log(container);
+      container.style.cssText = `display: flex; flex-direction: column; position: relative`;
 
-      const parser = new DOMParser();
-      const svg = parser.parseFromString(ICON, "image/svg+xml");
+      let newDiv = document.createElement("div");
 
-      svg.querySelector("div").addEventListener("click", function (event) {
+      newDiv.addEventListener("click", function (event) {
         let queryStr = getQuery();
         copyToClipboard(queryStr);
+
+        chrome.runtime.sendMessage("", {
+          type: "notification",
+          options: {
+            type: "basic",
+            title: "honeycomb.io",
+            message: "Copied to the clipboards!",
+            iconUrl: "icons/icon48.png",
+          },
+        });
       });
 
-      container.appendChild(svg.querySelector("div")).className =
-        "css-flxm2o-RawButton e1myaoz20";
-      // insert button
-
-      // make it clickable
+      newDiv.style.cssText = `bottom: 40%; position: absolute; width: 100%;`;
+      newDiv.innerHTML = ICON;
+      container.appendChild(newDiv);
     }
   }, 10);
 });
