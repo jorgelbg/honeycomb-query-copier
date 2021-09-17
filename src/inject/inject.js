@@ -10,6 +10,8 @@ let opToFn = {
   "does-not-contain": "NOT(CONTAINS(__field, __value))",
   "starts-with": "STARTS_WITH(__field, __value)",
   "does-not-start-with ": "NOT(STARTS_WITH(__field, __value))",
+  in: "IN(__field, __value)",
+  "not-in": "NOT(IN(__field, __value))",
   "=": "EQUALS(__field, __value)",
   "!=": "NOT(EQUALS(__field, __value))",
   ">": "GT(__field, __value)",
@@ -20,6 +22,7 @@ let opToFn = {
 
 let numericOps = [">", "<", ">=", "<="];
 let valueOps = ["=", "!="];
+let variableOps = ["in", "not-in"];
 
 const ICON = `
 	<svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem; cursor: pointer;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,13 +63,15 @@ function getQuery() {
     (item) => item.textContent
   );
 
+  console.log(filters);
+
   let filtersObj = Array.from(
     filters.map((f) => {
-      let parts = f.split(" ");
+      let parts = f.replace(", ", ",").split(" ");
       let obj = {
         field: parts[0],
         operator: parts[1],
-        value: parts[2],
+        value: parts.slice(2),
       };
 
       return obj;
@@ -79,7 +84,7 @@ function getQuery() {
       s = s.replace(`__field`, `\$${f.field}`);
 
       // value is optional
-      if (f.value != undefined) {
+      if (f.value.length == 1) {
         let quotes = true;
         // TODO: booleans?
         if (numericOps.includes(f.operator)) {
@@ -88,6 +93,13 @@ function getQuery() {
 
         if (valueOps.includes(f.operator)) {
           quotes = isNaN(f.value);
+        }
+
+        if (variableOps.includes(f.operator)) {
+          // transform GET,POST into GET","POST,
+          // and set quotes -> true
+          f.value[0] = f.value[0].replace(",", '","');
+          quotes = true;
         }
 
         if (quotes) {
@@ -142,7 +154,7 @@ chrome.extension.sendMessage({}, function (response) {
           options: {
             type: "basic",
             title: "honeycomb.io",
-            message: "Copied to the clipboards!",
+            message: "Copied query to the clipboards!",
             iconUrl: "icons/icon48.png",
           },
         });
