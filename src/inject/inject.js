@@ -41,7 +41,7 @@ function copyToClipboard(queryStr) {
   el.remove();
 
   if (!success) {
-    console.log(`Failed to write to clipboard`);
+    console.error(`Failed to write to clipboard`);
   }
 }
 
@@ -127,7 +127,6 @@ function getQuery() {
     filtersObj
   );
 
-  console.log(`The final query is: ${queryStr}`);
   return queryStr;
 }
 
