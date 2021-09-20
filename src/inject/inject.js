@@ -3,7 +3,7 @@ let QUERY_TYPES = {
   OR: "OR",
 };
 
-let opToFn = {
+let OPERATORS = {
   "does-not-exist": "NOT(EXISTS(__field))",
   exists: "EXISTS(__field)",
   contains: "CONTAINS(__field, __value)",
@@ -20,9 +20,9 @@ let opToFn = {
   "<=": "LTE(__field, __value)",
 };
 
-let numericOps = [">", "<", ">=", "<="];
-let valueOps = ["=", "!="];
-let variableOps = ["in", "not-in"];
+let NUMERIC_OPS = [">", "<", ">=", "<="];
+let VALUE_OPS = ["=", "!="];
+let MULTIPLE_VALUES_OPS = ["in", "not-in"];
 
 const ICON = `
 	<svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem; cursor: pointer;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,22 +80,22 @@ function getQuery() {
 
   let translatedFilters = Array.from(
     filtersObj.map((f) => {
-      let s = opToFn[f.operator];
+      let s = OPERATORS[f.operator];
       s = s.replace(`__field`, `\$${f.field}`);
 
       // value is optional
       if (f.value.length == 1) {
         let quotes = true;
         // TODO: booleans?
-        if (numericOps.includes(f.operator)) {
+        if (NUMERIC_OPS.includes(f.operator)) {
           quotes = false;
         }
 
-        if (valueOps.includes(f.operator)) {
+        if (VALUE_OPS.includes(f.operator)) {
           quotes = isNaN(f.value);
         }
 
-        if (variableOps.includes(f.operator)) {
+        if (MULTIPLE_VALUES_OPS.includes(f.operator)) {
           // transform GET,POST into GET","POST,
           // and set quotes -> true
           f.value[0] = f.value[0].replace(",", '","');
