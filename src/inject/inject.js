@@ -67,7 +67,7 @@ chrome.extension.sendMessage({}, function (response) {
         });
       });
 
-      newDiv.style.cssText = `bottom: 40%; position: absolute; width: 100%;`;
+      newDiv.style.cssText = `bottom: 20%; position: absolute; width: 100%;`;
       newDiv.innerHTML = ICON;
       container.appendChild(newDiv);
     }

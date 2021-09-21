@@ -3,7 +3,7 @@ const ext = require("../src/translator.js");
 
 let QUERIES = [
   {
-    name: "does-not-exist",
+    name: "does-not-exist operator",
     filters: [
       "meta.annotation_type does-not-exist",
       "trace.parent_id does-not-exist",
@@ -16,12 +16,12 @@ let QUERIES = [
     translated: `AND(IN($http.method, "GET","POST"))`,
   },
   {
-    name: "numeric operator",
+    name: "numeric values are not quoted",
     filters: ["http.method in GET, POST", "duration_ms > 500"],
     translated: `AND(IN($http.method, "GET","POST"),GT($duration_ms, 500))`,
   },
   {
-    name: "string values",
+    name: "string values are quoted",
     filters: ["http.method in GET, POST", "service.name contains istio"],
     translated: `AND(IN($http.method, "GET","POST"),CONTAINS($service.name, "istio"))`,
   },

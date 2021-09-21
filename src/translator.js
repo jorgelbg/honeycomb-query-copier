@@ -44,6 +44,10 @@ function getQuery(filters) {
   let translatedFilters = Array.from(
     filtersObj.map((f) => {
       let s = OPERATORS[f.operator];
+      if (s == undefined) {
+        throw `Unknown operator: ${f.operator}`;
+      }
+
       s = s.replace(`__field`, `\$${f.field}`);
 
       // value is optional
