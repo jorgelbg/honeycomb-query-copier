@@ -25,6 +25,7 @@
         "https://ui.honeycomb.io/*/datasets/*/result*"
       ],
       "js": [
+        "src/translator.js",
         "src/inject/inject.js"
       ]
     }
