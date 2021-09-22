@@ -27,12 +27,21 @@ let QUERIES = [
   },
 ];
 
-describe("Query parser", function () {
-  describe("translator", function () {
+describe("Query parser", () => {
+  describe("translator", () => {
     QUERIES.forEach((test) => {
-      it(test.name, function () {
+      it(test.name, () => {
         assert.equal(ext.getQuery(test.filters), test.translated);
       });
+    });
+  });
+
+  describe("errors", () => {
+    it("throws exception for unknown operators", () => {
+      assert.throws(
+        () => ext.getQuery([`http.method totally-not-an-operator`]),
+        /totally-not-an-operator/
+      );
     });
   });
 });

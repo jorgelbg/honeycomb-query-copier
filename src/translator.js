@@ -26,7 +26,6 @@ let MULTIPLE_VALUES_OPS = ["in", "not-in"];
 
 function getQuery(filters) {
   let queryType = QUERY_TYPES.AND;
-  // console.log(filters);
 
   let filtersObj = Array.from(
     filters.map((f) => {
@@ -45,7 +44,7 @@ function getQuery(filters) {
     filtersObj.map((f) => {
       let s = OPERATORS[f.operator];
       if (s == undefined) {
-        throw `Unknown operator: ${f.operator}`;
+        throw new Error(`Unknown operator: ${f.operator}`);
       }
 
       s = s.replace(`__field`, `\$${f.field}`);
