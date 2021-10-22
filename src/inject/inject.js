@@ -61,7 +61,7 @@ chrome.extension.sendMessage({}, function (response) {
           options: {
             type: "basic",
             title: "honeycomb.io",
-            message: "Copied query to the clipboards!",
+            message: "Copied query to the clipboard",
             iconUrl: "icons/icon48.png",
           },
         });
