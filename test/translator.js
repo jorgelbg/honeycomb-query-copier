@@ -13,7 +13,7 @@ let QUERIES = [
   {
     name: "in operator",
     filters: ["http.method in GET, POST"],
-    translated: `AND(IN($http.method, "GET","POST"))`,
+    translated: `IN($http.method, "GET","POST")`,
   },
   {
     name: "numeric values are not quoted",
@@ -24,6 +24,11 @@ let QUERIES = [
     name: "string values are quoted",
     filters: ["http.method in GET, POST", "service.name contains istio"],
     translated: `AND(IN($http.method, "GET","POST"),CONTAINS($service.name, "istio"))`,
+  },
+  {
+    name: "single conditions are not quoted",
+    filters: ["service.name contains istio"],
+    translated: `CONTAINS($service.name, "istio")`,
   },
 ];
 

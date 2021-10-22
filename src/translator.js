@@ -28,50 +28,48 @@ function getQuery(filters) {
   let queryType = QUERY_TYPES.AND;
 
   let filtersObj = Array.from(
-    filters.map((f) => {
-      let parts = f.replace(", ", ",").split(" ");
-      let obj = {
+    filters.map((filter) => {
+      let parts = filter.replace(", ", ",").split(" ");
+      return {
         field: parts[0],
         operator: parts[1],
         value: parts.slice(2),
       };
-
-      return obj;
     })
   );
 
   let translatedFilters = Array.from(
-    filtersObj.map((f) => {
-      let s = OPERATORS[f.operator];
+    filtersObj.map((filter) => {
+      let s = OPERATORS[filter.operator];
       if (s == undefined) {
-        throw new Error(`Unknown operator: ${f.operator}`);
+        throw new Error(`Unknown operator: ${filter.operator}`);
       }
 
-      s = s.replace(`__field`, `\$${f.field}`);
+      s = s.replace(`__field`, `\$${filter.field}`);
 
       // value is optional
-      if (f.value.length == 1) {
+      if (filter.value.length == 1) {
         let quotes = true;
         // TODO: booleans?
-        if (NUMERIC_OPS.includes(f.operator)) {
+        if (NUMERIC_OPS.includes(filter.operator)) {
           quotes = false;
         }
 
-        if (VALUE_OPS.includes(f.operator)) {
-          quotes = isNaN(f.value);
+        if (VALUE_OPS.includes(filter.operator)) {
+          quotes = isNaN(filter.value);
         }
 
-        if (MULTIPLE_VALUES_OPS.includes(f.operator)) {
+        if (MULTIPLE_VALUES_OPS.includes(filter.operator)) {
           // transform GET,POST into GET","POST,
           // and set quotes -> true
-          f.value[0] = f.value[0].replace(",", '","');
+          filter.value[0] = filter.value[0].replace(",", '","');
           quotes = true;
         }
 
         if (quotes) {
-          s = s.replace(`__value`, `"${f.value}"`);
+          s = s.replace(`__value`, `"${filter.value}"`);
         } else {
-          s = s.replace(`__value`, `${f.value}`);
+          s = s.replace(`__value`, `${filter.value}`);
         }
       }
 
@@ -81,17 +79,20 @@ function getQuery(filters) {
 
   let queryStr = "";
   let expr = translatedFilters.join(",");
-  if (queryType == QUERY_TYPES.AND) {
-    // combine with `AND()` all the translatedFilters
-    queryStr = `AND(${expr})`;
-  } else {
-    queryStr = `OR(${expr})`;
+
+  // when we have a single condition, we skip the AND/OR wrapping
+  if (filtersObj.length == 1) {
+    return expr;
   }
 
-  // console.log(
-  //   `We have a query of type ${queryType} with the filters`,
-  //   filtersObj
-  // );
+  switch (queryType) {
+    case QUERY_TYPES.OR:
+      queryStr = `OR(${expr})`;
+      break;
+    default:
+      queryStr = `AND(${expr})`;
+      break;
+  }
 
   return queryStr;
 }
