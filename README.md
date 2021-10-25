@@ -32,6 +32,18 @@ IN($http.method, "GET","POST"))
 
 which can be pasted into the Derived Column editor.
 
+## Installation
+
+⚠️ The extension is currently not published in the Chrome Web Store.
+
+1. Go to `chrome://extensions/`
+1. Enable Developer mode
+
+   ![enable developer mode](https://user-images.githubusercontent.com/1291846/138667478-3de4ecfe-0c9a-45f5-aabb-2109cbcfec58.png)
+3. Download the `.crx` file from the [Releases
+   page](https://github.com/jorgelbg/honeycomb-query-copier/releases).
+4. Drag and drop the `.crx` file into the extensions page.
+
 ## 🔗 Links
 
 Logo based on the Honeycomb SVG Vector from: https://www.svgrepo.com/svg/227140/honeycomb.
